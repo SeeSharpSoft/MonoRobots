@@ -286,3 +286,8 @@ __pycache__/
 *.btm.cs
 *.odx.cs
 *.xsd.cs
+/Include/AI
+/Include/Board/custom
+/Include/Board/default
+/Include/Images/new
+/Include/Images/pen
