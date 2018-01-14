@@ -110,8 +110,7 @@ namespace SeeSharpSoft.MonoRobots.GUI
         {
             if(openFileDialog.ShowDialog(this) != DialogResult.OK) return;
 
-            RoboBoard board = new RoboBoard();
-            board.Load(openFileDialog.FileName, Difficulty.Hard);
+            RoboBoard board = RoboUtils.LoadBoard(openFileDialog.FileName, Difficulty.Hard);
 
             SetBoard(board);
 

@@ -151,22 +151,36 @@ namespace SeeSharpSoft.MonoRobots
             return pluginName;
         }
 
-        public static RoboPlayerPlugin RegisterPlugin(RoboManager roboManager, String relativeExecutablePath)
+        public static RoboPlayerPlugin RegisterPlugin(RoboManager roboManager, String executablePath)
         {
-            String pluginName = Path.GetFileName(relativeExecutablePath);
+            return RegisterPlugin(roboManager, executablePath, false);
+        }
+
+        public static RoboPlayerPlugin RegisterPlugin(RoboManager roboManager, String executablePath, bool isRelativePath)
+        {
+            String pluginName = Path.GetFileName(executablePath);
             pluginName = FindPluginName(roboManager, pluginName.Substring(0, pluginName.IndexOf('.')));
             RoboPlayerFileIOWrapper roboPlugin = new RoboPlayerFileIOWrapper();
-            roboPlugin.ExecutablePath = Directory.GetCurrentDirectory() + "/" + relativeExecutablePath;
+            roboPlugin.ExecutablePath = (isRelativePath ? Directory.GetCurrentDirectory() + "/" : "") + executablePath;
             roboPlugin.Name = pluginName;
             roboManager.AvailablePlugins.Add(roboPlugin);
+
+            Console.WriteLine("Initialized KI: " + roboPlugin.ExecutablePath);
+
             return roboPlugin;
         }
 
         public static RoboBoard LoadBoard(String boardPath, Difficulty difficulty)
         {
-            Console.WriteLine("Loading Board: " + Directory.GetCurrentDirectory() + "/" + boardPath);
+            return LoadBoard(boardPath, false, difficulty);
+        }
+
+        public static RoboBoard LoadBoard(String boardPath, bool isRelativePath, Difficulty difficulty)
+        {
+            String path = (isRelativePath ? Directory.GetCurrentDirectory() + "/" : "") + boardPath;
+            Console.WriteLine("Loading Board: " + path);
             RoboBoard board = new RoboBoard();
-            board.Load(Directory.GetCurrentDirectory() + "/" + boardPath, difficulty);
+            board.Load(path, difficulty);
             return board;
         }
 

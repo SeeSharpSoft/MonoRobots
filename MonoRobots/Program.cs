@@ -61,7 +61,7 @@ namespace SeeSharpSoft.MonoRobots
         {
             RoboManager roboManager = SetupRoboManager();
             RoboPlayerPlugin roboPlugin = SetupRoboPlayer(roboManager, kiPath);
-            RoboBoard board = RoboUtils.LoadBoard(boardPath, difficulty);
+            RoboBoard board = RoboUtils.LoadBoard(boardPath, true, difficulty);
  
             Console.WriteLine("Start...");
 
@@ -86,7 +86,7 @@ namespace SeeSharpSoft.MonoRobots
                 List<RoboPlayerResult> boardStats = new List<RoboPlayerResult>();
                 results.Add(boardFileName, boardStats);
 
-                RoboBoard board = RoboUtils.LoadBoard(boardFileName, difficulty);
+                RoboBoard board = RoboUtils.LoadBoard(boardFileName, true, difficulty);
                 foreach (String deckFileName in getFileEnumerable(decksPath))
                 {
                     RoboCard[] pile = RoboUtils.LoadCardDeck(deckFileName);
@@ -106,8 +106,6 @@ namespace SeeSharpSoft.MonoRobots
         {
             String fileNamePattern = Path.GetFileName(pathPattern);
             String directory = "./" + Path.GetDirectoryName(pathPattern);
-            Console.WriteLine(directory);
-            Console.WriteLine(fileNamePattern);
             return Directory.EnumerateFiles(directory, fileNamePattern, SearchOption.AllDirectories);
         }
 
@@ -122,8 +120,7 @@ namespace SeeSharpSoft.MonoRobots
 
         private static RoboPlayerPlugin SetupRoboPlayer(RoboManager roboManager, String kiExecutable)
         {
-            Console.WriteLine("Initialize KI: " + Directory.GetCurrentDirectory() + "/" + kiExecutable);
-            RoboPlayerPlugin roboPlugin = RoboUtils.RegisterPlugin(roboManager, kiExecutable);
+            RoboPlayerPlugin roboPlugin = RoboUtils.RegisterPlugin(roboManager, kiExecutable, true);
             roboManager.ActivatePlugin(roboPlugin);
             return roboPlugin;
         }
