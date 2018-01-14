@@ -24,8 +24,8 @@ namespace SeeSharpSoft.MonoRobots
         }
 
         public static void Main(string[] args)
-        { 
-            switch(GetCommand(args[0]))
+        {
+            switch (GetCommand(args[0]))
             {
                 case CommandLineAction.CREATE_DECK:
                     CreateDeck(args[1], args.Length > 2 ? int.Parse(args[2]) : 1);
@@ -60,9 +60,9 @@ namespace SeeSharpSoft.MonoRobots
         private static void PlayGame(String kiPath, String boardPath, Difficulty difficulty)
         {
             RoboManager roboManager = SetupRoboManager();
-            RoboPlayerPlugin roboPlugin = SetupRoboPlayer(roboManager, kiPath);
+            RoboPlayerPlugin roboPlugin = SetupRoboPlayer(roboManager, kiPath, true);
             RoboBoard board = RoboUtils.LoadBoard(boardPath, true, difficulty);
- 
+
             Console.WriteLine("Start...");
 
             ExecuteGame(roboManager, board, RoboUtils.CreateCardPile());
@@ -75,31 +75,39 @@ namespace SeeSharpSoft.MonoRobots
         private static void Statistics(String kiPath, String boardsPath, String decksPath, Difficulty difficulty)
         {
             RoboManager roboManager = SetupRoboManager();
-            RoboPlayerPlugin roboPlugin = SetupRoboPlayer(roboManager, kiPath);
 
-            Dictionary<String, List<RoboPlayerResult>> results = new Dictionary<string, List<RoboPlayerResult>>();
+            Dictionary<String, Dictionary<String, List<RoboPlayerResult>>> allResults = new Dictionary<String, Dictionary<String, List<RoboPlayerResult>>>();
 
-            int roundsPlayed = 0;
+            int roundsPlayedInTotal = 0;
 
             foreach (String boardFileName in getFileEnumerable(boardsPath))
             {
-                List<RoboPlayerResult> boardStats = new List<RoboPlayerResult>();
-                results.Add(boardFileName, boardStats);
-
                 RoboBoard board = RoboUtils.LoadBoard(boardFileName, true, difficulty);
-                foreach (String deckFileName in getFileEnumerable(decksPath))
+                foreach (String pluginPath in getFileEnumerable(kiPath))
                 {
-                    RoboCard[] pile = RoboUtils.LoadCardDeck(deckFileName);
-                    ExecuteGame(roboManager, board, pile);
-                    roundsPlayed++;
+                    RoboPlayerPlugin roboPlugin = SetupRoboPlayer(roboManager, pluginPath, true);
 
-                    RoboPlayerResult singleStat = new RoboPlayerResult(roboPlugin.Player);
-                    boardStats.Add(singleStat);
+                    Dictionary<String, List<RoboPlayerResult>> boardResults = new Dictionary<String, List<RoboPlayerResult>>();
+                    allResults[boardFileName] = boardResults;
+                    List<RoboPlayerResult> playerResults = new List<RoboPlayerResult>();
+                    boardResults.Add(pluginPath, playerResults);
+   
+                    foreach (String deckFileName in getFileEnumerable(decksPath))
+                    {
+                        RoboCard[] pile = RoboUtils.LoadCardDeck(deckFileName);
+                        ExecuteGame(roboManager, board, pile);
+                        roundsPlayedInTotal++;
+
+                        RoboPlayerResult singleStat = new RoboPlayerResult(roboPlugin.Player);
+                        playerResults.Add(singleStat);
+                    }
+
+                    roboManager.DeactivatePlugin(roboPlugin);
                 }
             }
 
-            Console.WriteLine("RoundsPlayed: " + roundsPlayed);
-            Console.Write(GetFormattedStatistics(results));
+            Console.WriteLine("RoundsPlayed: " + roundsPlayedInTotal);
+            Console.Write(GetFormattedStatistics(allResults));
         }
 
         private static IEnumerable<String> getFileEnumerable(String pathPattern)
@@ -118,9 +126,9 @@ namespace SeeSharpSoft.MonoRobots
             return roboManager;
         }
 
-        private static RoboPlayerPlugin SetupRoboPlayer(RoboManager roboManager, String kiExecutable)
+        private static RoboPlayerPlugin SetupRoboPlayer(RoboManager roboManager, String kiExecutable, bool relative)
         {
-            RoboPlayerPlugin roboPlugin = RoboUtils.RegisterPlugin(roboManager, kiExecutable, true);
+            RoboPlayerPlugin roboPlugin = RoboUtils.RegisterPlugin(roboManager, kiExecutable, relative);
             roboManager.ActivatePlugin(roboPlugin);
             return roboPlugin;
         }
@@ -157,39 +165,88 @@ namespace SeeSharpSoft.MonoRobots
             }
         }
 
-        private static String GetFormattedStatistics(Dictionary<String, List<RoboPlayerResult>> results)
+        private static String GetFormattedStatistics(Dictionary<String, Dictionary<String, List<RoboPlayerResult>>> results)
         {
-            StringBuilder builder = new StringBuilder("board; #win; #rounds; #cards; #time; øwin; ørounds; øcards; øtime");
-            builder.AppendLine();
-            Dictionary<String, RoboPlayerStatistic> stats = new Dictionary<String, RoboPlayerStatistic>();
-            foreach (KeyValuePair<String, List<RoboPlayerResult>> entry in results)
-            {
-                stats.Add(entry.Key, RoboPlayerStatistic.CalcStatistics(entry.Value));
-            }
-            stats.Add("Total", RoboPlayerStatistic.CalcStatistics(stats.Values));
+            StringBuilder builder = new StringBuilder();
 
-            foreach (KeyValuePair<String, RoboPlayerStatistic> entry in stats)
+            Dictionary<String, List<RoboPlayerStatistic>> playerStats = new Dictionary<String, List<RoboPlayerStatistic>>();
+
+            foreach (KeyValuePair<String, Dictionary<String, List<RoboPlayerResult>>> entry in results)
             {
-                RoboPlayerStatistic stat = entry.Value;
                 builder.Append(entry.Key);
-                builder.Append("; ");
-                builder.Append(stat.Finished);
-                builder.Append("; ");
-                builder.Append(stat.RoundsPlayed);
-                builder.Append("; ");
-                builder.Append(stat.CardsPlayed);
-                builder.Append("; ");
-                builder.Append(stat.Time);
-                builder.Append("; ");
-                builder.Append(stat.Finished + stat.Died + stat.Error > 0 ? (double)stat.Finished / (stat.Finished + stat.Died + stat.Error) : 0.0);
-                builder.Append("; ");
-                builder.Append(stat.Finished > 0 ? stat.RoundsPlayed / stat.Finished : 0.0);
-                builder.Append("; ");
-                builder.Append(stat.Finished > 0 ? stat.CardsPlayed / stat.Finished : 0.0);
-                builder.Append("; ");
-                builder.Append(stat.Finished > 0 ? stat.Time / stat.Finished : 0.0);
+                builder.AppendLine();
+                builder.Append(GetFormattedStatistics(entry.Value, playerStats));
                 builder.AppendLine();
             }
+
+            Dictionary<String, RoboPlayerStatistic> localStats = new Dictionary<String, RoboPlayerStatistic>();
+            builder.AppendLine("Player Totals");
+            foreach (KeyValuePair<String, List<RoboPlayerStatistic>> entry in playerStats)
+            {
+                builder.Append(entry.Key);
+                builder.Append("; ");
+                builder.Append(PrintStatistics(RoboPlayerStatistic.CalcStatistics(entry.Value)));
+                builder.AppendLine();
+            }
+
+            return builder.ToString();
+        }
+
+        private static String GetFormattedStatistics(Dictionary<String, List<RoboPlayerResult>> results, Dictionary<String, List<RoboPlayerStatistic>> playerStats)
+        {
+            StringBuilder builder = new StringBuilder("Player; #win; #rounds; #cards; #time; øwin; ørounds; øcards; øtime");
+            builder.AppendLine();
+
+            Dictionary<String, RoboPlayerStatistic> localStats = new Dictionary<String, RoboPlayerStatistic>();
+            foreach (KeyValuePair<String, List<RoboPlayerResult>> entry in results)
+            {
+                RoboPlayerStatistic playerStat = RoboPlayerStatistic.CalcStatistics(entry.Value);
+
+                // fill player overall stats
+                if (!playerStats.ContainsKey(entry.Key))
+                {
+                    playerStats[entry.Key] = new List<RoboPlayerStatistic>();
+                }
+                List<RoboPlayerStatistic> playerStatsEntry = playerStats[entry.Key];
+                
+                playerStatsEntry.Add(playerStat);
+
+                // current board stat
+                localStats.Add(entry.Key, playerStat);
+
+                builder.Append(entry.Key);
+                builder.Append("; ");
+                builder.Append(PrintStatistics(playerStat));
+                builder.AppendLine();
+            }
+            builder.Append("Board Totals");
+            builder.Append("; ");
+            builder.Append(PrintStatistics(RoboPlayerStatistic.CalcStatistics(localStats.Values)));
+            builder.AppendLine();
+
+            return builder.ToString();
+        }
+
+        private static String PrintStatistics(RoboPlayerStatistic stat)
+        {
+            StringBuilder builder = new StringBuilder();
+
+            builder.Append(stat.Finished);
+            builder.Append("; ");
+            builder.Append(stat.RoundsPlayed);
+            builder.Append("; ");
+            builder.Append(stat.CardsPlayed);
+            builder.Append("; ");
+            builder.Append(stat.Time);
+            builder.Append("; ");
+            builder.Append(stat.Finished + stat.Died + stat.Error > 0 ? (double)stat.Finished / (stat.Finished + stat.Died + stat.Error) : 0.0);
+            builder.Append("; ");
+            builder.Append(stat.Finished > 0 ? stat.RoundsPlayed / stat.Finished : 0.0);
+            builder.Append("; ");
+            builder.Append(stat.Finished > 0 ? stat.CardsPlayed / stat.Finished : 0.0);
+            builder.Append("; ");
+            builder.Append(stat.Finished > 0 ? stat.Time / stat.Finished : 0.0);
+            builder.Append("; ");
 
             return builder.ToString();
         }
