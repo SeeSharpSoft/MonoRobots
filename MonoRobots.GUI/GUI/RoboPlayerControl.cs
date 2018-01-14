@@ -31,13 +31,13 @@ namespace SeeSharpSoft.MonoRobots.GUI
             {
                 dataLabelState.Text = roboPlayer.PlayerState.ToString();
                 dataLabelTime.Text = roboPlayer.TotalTimeElapsed.TotalMilliseconds + " ms";
-                if (roboPlayer.PlayerState == RoboPlayerState.Decided && roboPlayer.Cards != null && roboPlayer.Cards.Length == 5)
+                if (roboPlayer.PlayerState == RoboPlayerState.Decided && roboPlayer.ChosenCards != null && roboPlayer.ChosenCards.Length == 5)
                 {
-                    cardBox1.Image = (Image)Resources.ResourceManager.GetObject(RoboCard.EncodeCard(roboPlayer.Cards[0]).Replace(" ", ""), Resources.Culture);
-                    cardBox2.Image = (Image)Resources.ResourceManager.GetObject(RoboCard.EncodeCard(roboPlayer.Cards[1]).Replace(" ", ""), Resources.Culture);
-                    cardBox3.Image = (Image)Resources.ResourceManager.GetObject(RoboCard.EncodeCard(roboPlayer.Cards[2]).Replace(" ", ""), Resources.Culture);
-                    cardBox4.Image = (Image)Resources.ResourceManager.GetObject(RoboCard.EncodeCard(roboPlayer.Cards[3]).Replace(" ", ""), Resources.Culture);
-                    cardBox5.Image = (Image)Resources.ResourceManager.GetObject(RoboCard.EncodeCard(roboPlayer.Cards[4]).Replace(" ", ""), Resources.Culture);
+                    cardBox1.Image = (Image)Resources.ResourceManager.GetObject(RoboCard.EncodeCard(roboPlayer.ChosenCards[0]).Replace(" ", ""), Resources.Culture);
+                    cardBox2.Image = (Image)Resources.ResourceManager.GetObject(RoboCard.EncodeCard(roboPlayer.ChosenCards[1]).Replace(" ", ""), Resources.Culture);
+                    cardBox3.Image = (Image)Resources.ResourceManager.GetObject(RoboCard.EncodeCard(roboPlayer.ChosenCards[2]).Replace(" ", ""), Resources.Culture);
+                    cardBox4.Image = (Image)Resources.ResourceManager.GetObject(RoboCard.EncodeCard(roboPlayer.ChosenCards[3]).Replace(" ", ""), Resources.Culture);
+                    cardBox5.Image = (Image)Resources.ResourceManager.GetObject(RoboCard.EncodeCard(roboPlayer.ChosenCards[4]).Replace(" ", ""), Resources.Culture);
                 }
             }
         }

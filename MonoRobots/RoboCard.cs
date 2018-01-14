@@ -128,6 +128,12 @@ namespace SeeSharpSoft.MonoRobots
             return (int)CardType;
         }
 
+        public override bool Equals(object obj)
+        {
+            RoboCard otherCard = obj as RoboCard;
+            return otherCard != null && CardType == otherCard.CardType;
+        }
+
         /// <summary>
         /// Encode a set of 5 cards as integer.
         /// </summary>

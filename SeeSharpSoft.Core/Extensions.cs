@@ -123,7 +123,16 @@ namespace SeeSharpSoft
         public static bool IsSubsetOf<T>(this IEnumerable<T> collection, params T[] list)
         {
             if (collection == null) throw new ArgumentNullException("collection");
-            return collection.All(elem => list.Contains(elem));
+            List<T> set = new List<T>(list);
+            return collection.All(elem => {
+                int index = set.IndexOf(elem);
+                if (index == -1)
+                {
+                    return false;
+                }
+                set.RemoveAt(index);
+                return true;
+            });
         }
 
         public static void Remove<T>(this HashSet<T> hashSet, int hashCode)

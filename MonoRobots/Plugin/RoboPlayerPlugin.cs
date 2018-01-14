@@ -26,12 +26,12 @@ namespace SeeSharpSoft.MonoRobots.Plugin
 
         }
 
-        protected void PlayCards(IEnumerable<RoboCard> cards)
+        protected void PlayCards(RoboCard[] cards)
         {
             PlayCards(cards, null);
         }
 
-        protected void PlayCards(IEnumerable<RoboCard> cards, Exception exception)
+        protected void PlayCards(RoboCard[] cards, Exception exception)
         {
             PlayCardsCallback.BeginInvoke(this, cards, exception, null, null);
         }

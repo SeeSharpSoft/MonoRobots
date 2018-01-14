@@ -9,7 +9,7 @@ using SeeSharpSoft.MonoRobots.Plugin.Impl;
 
 namespace SeeSharpSoft.MonoRobots
 {
-    public delegate void PlayCards(RoboPlayerPlugin sender, IEnumerable<RoboCard> cards, Exception exception);
+    public delegate void PlayCards(RoboPlayerPlugin sender, RoboCard[] cards, Exception exception);
 
 	/// <summary>
 	/// This class is supposed to manage a game of robots.
@@ -177,7 +177,7 @@ namespace SeeSharpSoft.MonoRobots
                 foreach (RoboPlayerPlugin elem in ActivePlayers.OrderBy(elem => elem.Player.TimeEndRound.Ticks))
                 {
                     if (elem.Player.PlayerState != RoboPlayerState.Decided) continue;
-                    RoboUtils.PlayCardCore(GetBoard(Board, elem.Player, ActivePlayers.Select(plugin => plugin.Player)), elem.Player.Cards[i], elem.Player.Position);
+                    RoboUtils.PlayCardCore(GetBoard(Board, elem.Player, ActivePlayers.Select(plugin => plugin.Player)), elem.Player.ChosenCards[i], elem.Player.Position);
                     elem.Player.TotalPlayedCards++;
 
                     if (Board.GetField(elem.Player.Position).IsDestination) elem.Player.PlayerState = RoboPlayerState.Finished;
@@ -215,7 +215,7 @@ namespace SeeSharpSoft.MonoRobots
             return board;
         }
 
-        private void RoboPlayerCallback(RoboPlayerPlugin plugin, IEnumerable<RoboCard> cards, Exception ex)
+        private void RoboPlayerCallback(RoboPlayerPlugin plugin, RoboCard[] chosenCards, Exception ex)
         {
             RoboPlayer player = plugin.Player;
             if (player == null || !ActivePlayers.Contains(plugin)) return;
@@ -225,8 +225,13 @@ namespace SeeSharpSoft.MonoRobots
             }
             else
             {
-                player.EndRound(cards);
-                player.PlayerState = RoboPlayerState.Decided;
+                if (player.EndRound(chosenCards))
+                {
+                    player.PlayerState = RoboPlayerState.Decided;
+                } else
+                {
+                    player.PlayerState = RoboPlayerState.Error;
+                }
             }
 
             Action playingCards = DoPlayingCards;

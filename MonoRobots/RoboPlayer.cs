@@ -28,9 +28,27 @@ namespace SeeSharpSoft.MonoRobots
             get { return _name; }
         }
 
+        private RoboCard[] _chosenCards;
+        /// <summary>
+        /// Get or set played cards.
+        /// </summary>
+        public RoboCard[] ChosenCards
+        {
+            private set
+            {
+                if (_chosenCards != value)
+                {
+                    _chosenCards = value;
+                    NotifyPropertyChanged();
+                }
+            }
+
+            get { return _chosenCards; }
+        }
+
         private RoboCard[] _cards;
         /// <summary>
-        /// Get or set handcards/played cards.
+        /// Get or set handcards.
         /// </summary>
         public RoboCard[] Cards
         {
@@ -205,18 +223,20 @@ namespace SeeSharpSoft.MonoRobots
         public virtual bool StartRound()
         {
             Round++;
+            ChosenCards = null;
             if (!DrawCards()) return false;
             TimeStartRound = DateTime.Now;
             return true;
         }
 
-        public virtual void EndRound(IEnumerable<RoboCard> playedCards)
+        public virtual bool EndRound(RoboCard[] playedCards)
         {
             TimeEndRound = DateTime.Now;
-
             TotalTimeElapsed += (TimeEndRound - TimeStartRound);
 
-            Cards = playedCards.ToArray();
+            ChosenCards = playedCards;
+ 
+            return ChosenCards.IsSubsetOf(Cards);
         }
 
         private bool DrawCards()
