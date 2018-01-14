@@ -97,9 +97,15 @@ namespace SeeSharpSoft.MonoRobots
 
         public void StartGame()
         {
-            OnGameStateChange(EventArgs<RoboGameState>.create(RoboGameState.StartGame));
-
             RoboCard[] pile = RoboUtils.CreateCardPile();
+            StartGame(Board, pile);
+        }
+
+        public void StartGame(RoboBoard board, RoboCard[] pile)
+        {
+            Board = board;
+
+            OnGameStateChange(EventArgs<RoboGameState>.create(RoboGameState.StartGame));
 
             foreach (RoboPlayerPlugin elem in ActivePlayers)
             {

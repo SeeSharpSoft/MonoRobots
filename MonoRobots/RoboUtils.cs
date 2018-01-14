@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Linq;
+using SeeSharpSoft.MonoRobots.Plugin.Impl;
+using SeeSharpSoft.MonoRobots.Plugin;
 
 namespace SeeSharpSoft.MonoRobots
 {
     public static class RoboUtils
     {
+        public const int CARD_DECK_SIZE = 5600;
+
         #region Static base methods
 
         public static RoboPosition PerformAction(RoboBoard board, ActionPhase actionPhase, RoboAction action, RoboPosition position)
@@ -41,12 +45,11 @@ namespace SeeSharpSoft.MonoRobots
 
         public static RoboCard[] CreateCardPile()
         {
-            int pileSize = 5600;
-            List<RoboCard> temp = CreateCardPile(pileSize);
+            List<RoboCard> temp = CreateCardPile(CARD_DECK_SIZE);
             Random randomizer = new Random();
 
-            RoboCard[] pile = new RoboCard[pileSize];
-            for (int k = 0; k < pileSize; k++)
+            RoboCard[] pile = new RoboCard[CARD_DECK_SIZE];
+            for (int k = 0; k < CARD_DECK_SIZE; k++)
             {
                 int randomIndex = randomizer.Next(temp.Count);
                 pile[k] = temp[randomIndex];
@@ -90,6 +93,11 @@ namespace SeeSharpSoft.MonoRobots
             return cards;
         }
 
+        public static RoboCard[] LoadCardDeck(String filename)
+        {
+            return LoadCards(filename, CARD_DECK_SIZE);
+        }
+
         public static RoboCard[] LoadCards(String filename, int amount)
         {
             RoboCard[] cards = new RoboCard[amount];
@@ -130,6 +138,37 @@ namespace SeeSharpSoft.MonoRobots
         }
         #endregion
 
+        private static String FindPluginName(RoboManager roboManager, String initialName)
+        {
+            IEnumerable<String> pluginNames = roboManager.AvailablePlugins.Select(plugin => plugin.Name);
+            String pluginName = initialName;
+            int nameDifferentiater = 1;
+            while (pluginNames.Contains(pluginName))
+            {
+                nameDifferentiater++;
+                pluginName = initialName + nameDifferentiater;
+            }
+            return pluginName;
+        }
+
+        public static RoboPlayerPlugin RegisterPlugin(RoboManager roboManager, String relativeExecutablePath)
+        {
+            String pluginName = Path.GetFileName(relativeExecutablePath);
+            pluginName = FindPluginName(roboManager, pluginName.Substring(0, pluginName.IndexOf('.')));
+            RoboPlayerFileIOWrapper roboPlugin = new RoboPlayerFileIOWrapper();
+            roboPlugin.ExecutablePath = Directory.GetCurrentDirectory() + "/" + relativeExecutablePath;
+            roboPlugin.Name = pluginName;
+            roboManager.AvailablePlugins.Add(roboPlugin);
+            return roboPlugin;
+        }
+
+        public static RoboBoard LoadBoard(String boardPath, Difficulty difficulty)
+        {
+            Console.WriteLine("Loading Board: " + Directory.GetCurrentDirectory() + "/" + boardPath);
+            RoboBoard board = new RoboBoard();
+            board.Load(Directory.GetCurrentDirectory() + "/" + boardPath, difficulty);
+            return board;
+        }
 
         public static ICollection<int> Permutation(RoboCard[] cards, int start, int n)
         {

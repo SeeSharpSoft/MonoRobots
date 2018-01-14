@@ -194,29 +194,13 @@ namespace SeeSharpSoft.MonoRobots.GUI
             showEditorToolStripMenuItem.Checked = visible;
         }
 
-        private String FindPluginName(String initialName)
-        {
-            IEnumerable<String> pluginNames = RoboManager.AvailablePlugins.Select(plugin => plugin.Name);
-            String pluginName = initialName;
-            int nameDifferentiater = 1;
-            while (pluginNames.Contains(pluginName))
-            {
-                nameDifferentiater++;
-                pluginName = initialName + nameDifferentiater;
-            }
-            return pluginName;
-        }
-
         private void loadKIToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (openKIFileDialog.ShowDialog(this) != DialogResult.OK || openKIFileDialog.FileName.IsNullOrEmpty()) return;
 
-            String fileNameOnly = openKIFileDialog.SafeFileName;
-            RoboPlayerFileIOWrapper plugin = new RoboPlayerFileIOWrapper();
-            plugin.Name = FindPluginName(fileNameOnly.Substring(0, fileNameOnly.IndexOf('.')));
-            plugin.ExecutablePath = openKIFileDialog.FileName;
-            RoboManager.AvailablePlugins.Add(plugin);
-            ToolStripMenuItem item = AddPluginToPlayerDropDown(plugin);
+            RoboPlayerPlugin roboPlugin = RoboUtils.RegisterPlugin(RoboManager, openKIFileDialog.FileName);
+
+            ToolStripMenuItem item = AddPluginToPlayerDropDown(roboPlugin);
             item.PerformClick();
         }
 
