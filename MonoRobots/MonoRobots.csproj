@@ -63,7 +63,6 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
-    <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Enums.cs" />
@@ -83,6 +82,7 @@
     <Compile Include="RoboManager.cs" />
     <Compile Include="RoboPosition.cs" />
     <Compile Include="RoboUtils.cs" />
+    <Compile Include="Size.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <SubType>Designer</SubType>
       <Generator>ResXFileCodeGenerator</Generator>

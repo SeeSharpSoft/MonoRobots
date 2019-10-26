@@ -5,7 +5,6 @@ using System.Text;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.ComponentModel;
-using System.Data;
 
 namespace SeeSharpSoft
 {
@@ -82,41 +81,6 @@ namespace SeeSharpSoft
                 }
             }
         }
-
-        #region IDataReader
-
-        public static T GetValue<T>(this IDataReader reader, int index)
-        {
-            return (T)Convert.ChangeType(reader[index], typeof(T));
-        }
-
-        public static T GetValue<T>(this IDataReader reader, String name)
-        {
-            return (T)Convert.ChangeType(reader[name], typeof(T));
-        }
-
-        public static IEnumerable<IDataRecord> AsEnumerable(this IDataReader reader)
-        {
-            while (reader.Read())
-            {
-                yield return reader;
-            }
-        }
-
-        public static DataTable ToDataTable(this IDataReader dr)
-        {
-            DataTable result = new DataTable();
-            result.Load(dr);
-            return result;
-        }
-
-        public static DataTable Select(this DataTable dt, string whereExpression, string orderByExpression)
-        {
-            DataView view = new DataView(dt, whereExpression, orderByExpression, DataViewRowState.CurrentRows);
-            return view.ToTable();
-        }
-
-        #endregion
 
         #region Collection
 
@@ -212,40 +176,6 @@ namespace SeeSharpSoft
         public static String Join<T>(this IEnumerable<IEnumerable<T>> list, string separator)
         {
             return list.Select(elem => "{" + elem.Join(separator) + "}").Join(separator);
-        }
-
-        public static DataTable ToDataTable<T>(this IEnumerable<T> collection)
-        {
-            DataTable result = new DataTable();
-
-            // column names 
-            PropertyDescriptorCollection properties = TypeDescriptor.GetProperties(typeof(T));
-            foreach (PropertyDescriptor pi in properties)
-            {
-                Type colType = pi.PropertyType;
-
-                if ((colType.IsGenericType) && (colType.GetGenericTypeDefinition() == typeof(Nullable<>)))
-                {
-                    colType = colType.GetGenericArguments()[0];
-                }
-
-                result.Columns.Add(new DataColumn(pi.Name, colType));
-            }
-
-            if (collection == null) return result;
-
-            foreach (T entry in collection)
-            {
-                DataRow dr = result.NewRow();
-
-                foreach (PropertyDescriptor pi in properties)
-                {
-                    dr[pi.Name] = pi.GetValue(entry) ?? DBNull.Value;
-                }
-
-                result.Rows.Add(dr);
-            }
-            return result;
         }
 
         #endregion
