@@ -69,7 +69,8 @@ namespace SeeSharpSoft.MonoRobots
 
             plugin.Player = new RoboPlayer();
             plugin.Player.Name = plugin.Name;
-            
+            plugin.ActivatePlugin(null);
+
             return plugin;
         }
 
@@ -83,6 +84,7 @@ namespace SeeSharpSoft.MonoRobots
             if (plugin == null) return;
 
             plugin.Player = null;
+            plugin.DeactivatePlugin(null);
         }
 
         public void DeactivatePlugin(String name)

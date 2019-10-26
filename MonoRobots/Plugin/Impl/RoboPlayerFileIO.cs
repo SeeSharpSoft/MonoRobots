@@ -19,6 +19,7 @@ namespace SeeSharpSoft.MonoRobots.Plugin.Impl
         protected abstract String LaunchFile { get; }
         protected virtual String LaunchFileArguments { get { return ""; } }
 		public virtual bool UseFullPath { get { return true; } }
+        public virtual bool DifficultyAsParameter { get { return true; } }
 
         public override void StartGame(RoboBoard board)
         {
